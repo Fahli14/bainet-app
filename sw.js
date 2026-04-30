@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bainet-sales-v2'; // Naikkan versi ke v2 karena ada perubahan aset
+const CACHE_NAME = 'bainet-sales-v3'; 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -15,7 +15,6 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Menggunakan ASSETS_TO_CACHE yang sudah didefinisikan di atas
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
