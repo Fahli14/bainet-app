@@ -1,23 +1,21 @@
-const CACHE_NAME = 'bainet-sales-v1';
-const ASSETS = [
+const CACHE_NAME = 'bainet-sales-v2'; // Naikkan versi ke v2 karena ada perubahan aset
+const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
   "./manifest.json",
   "./sw.js",
-  "./icon.png", // Tambahkan baris ini
+  "./icon.png",
   "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap",
+  "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap",
   "https://cdn.jsdelivr.net/npm/chart.js",
   "https://unpkg.com/html5-qrcode"
-];
-  'https://unpkg.com/html5-qrcode',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap'
 ];
 
 // Tahap Install: Menyimpan aset statis ke dalam cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
+      // Menggunakan ASSETS_TO_CACHE yang sudah didefinisikan di atas
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
