@@ -3,80 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem BaiNet - Portal Reseller</title>
+    <title>BaiNet Pro - Multi Stock System</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --bg: #f8f9fa; --text: #3c4043; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 15px; }
-        .card { background: white; width: 100%; max-width: 400px; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: fit-content; margin-top: 20px; }
-        .header { text-align: center; margin-bottom: 24px; }
-        .header h1 { color: var(--primary); font-size: 24px; margin-bottom: 4px; }
-        
-        label { display: block; margin-top: 15px; font-weight: 600; font-size: 14px; color: #5f6368; }
-        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #dadce0; font-size: 16px; outline: none; }
-        
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:disabled { background: #bdc1c6; }
-        
-        .hidden { display: none; }
-        
-        .stats { display: flex; gap: 12px; margin-bottom: 20px; }
-        .stat-item { flex: 1; background: #f1f3f4; padding: 12px; border-radius: 12px; text-align: center; }
-        .stat-item b { color: var(--primary); font-size: 20px; display: block; }
-        
-        .history-container { margin-top: 25px; border-top: 2px solid #f1f3f4; padding-top: 15px; }
-        .history-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #5f6368; display: flex; justify-content: space-between; }
-        .history-list { list-style: none; max-height: 250px; overflow-y: auto; }
-        .history-item { background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; font-size: 13px; align-items: center; }
-        .history-item span { color: #888; font-size: 11px; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+        }
 
-        #reader { width: 100%; margin-top: 15px; border-radius: 12px; overflow: hidden; background: #000; }
-        .logout-btn { background: #f1f3f4; color: #5f6368; margin-top: 20px; font-size: 14px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-gradient); background-attachment: fixed; min-height: 100vh; display: flex; justify-content: center; padding: 20px; }
+        
+        .card { 
+            background: var(--glass); width: 100%; max-width: 450px; border-radius: 24px; padding: 25px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); backdrop-filter: blur(10px); animation: slideUp 0.5s ease-out; 
+        }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--primary-dark); }
+        .header p { font-size: 14px; color: var(--text-sub); margin-top: 5px; }
+        
+        /* Layout Grid Baru */
+        .section-title { font-size: 12px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; margin: 15px 0 8px 5px; letter-spacing: 1px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .stat-card { background: #fff; padding: 10px 5px; border-radius: 16px; border: 1px solid #f1f5f9; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .stat-card small { font-size: 9px; font-weight: 700; color: var(--text-sub); display: block; margin-bottom: 2px; }
+        .stat-card b { display: block; font-size: 16px; color: var(--primary-dark); }
+        
+        /* Warna Khusus Terjual */
+        .terjual-box { background: #f0fdf4; border: 1px solid #dcfce7; }
+        .terjual-box b { color: var(--success); }
+        .stat-card.grand-total { grid-column: span 3; background: #6366f1; border: none; color: white; padding: 12px; }
+        .stat-card.grand-total b, .stat-card.grand-total small { color: white; }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 13px; color: var(--text-main); }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 15px; outline: none; }
+
+        button { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 2px solid #e2e8f0; color: var(--text-sub); margin-top: 15px; }
+
+        .history-box { margin-top: 20px; background: #f8fafc; border-radius: 16px; padding: 15px; }
+        .history-list { max-height: 180px; overflow-y: auto; }
+        .history-item { background: white; padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary); font-size: 13px; }
+        .type-tag { font-size: 10px; padding: 2px 6px; border-radius: 6px; background: #e0e7ff; color: var(--primary); font-weight: bold; }
+
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; padding:20px; z-index:100; backdrop-filter: blur(4px); }
+        .modal-content { background:white; padding:25px; border-radius:24px; width:100%; max-width:320px; text-align:center; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div class="header">
-        <h1>Sistem BaiNet</h1>
-        <p id="subStatus">Lapor Penjualan Voucher</p>
+        <h1>BaiNet Pro<span style="color:var(--success)">.</span></h1>
+        <p id="subStatus">Voucher Management System</p>
     </div>
 
-    <!-- HALAMAN LOGIN -->
+    <!-- PAGE: LOGIN -->
     <div id="loginPage">
-        <label>Nama Reseller:</label>
-        <input type="text" id="resellerName" placeholder="Nama Anda">
-        <label>Password:</label>
-        <input type="password" id="passInput" maxlength="4" inputmode="numeric">
-        <button onclick="prosesLogin()">MASUK</button>
-        <p id="err" style="color:red; text-align:center; font-size:12px; margin-top:10px;"></p>
+        <div class="input-group">
+            <label>Nama Reseller</label>
+            <input type="text" id="resellerName" placeholder="Nama Anda" autocomplete="off">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="passInput" maxlength="4" inputmode="numeric" placeholder="****">
+        </div>
+        <button class="btn-primary" onclick="prosesLogin()">Masuk</button>
+        <p id="err" style="color:var(--danger); text-align:center; font-size:12px; margin-top:10px;"></p>
     </div>
 
-    <!-- HALAMAN DASHBOARD -->
+    <!-- PAGE: DASHBOARD -->
     <div id="dashboardPage" class="hidden">
-        <div class="stats">
-            <div class="stat-item"><small>Sisa Stok</small><b id="stokVal">0</b></div>
-            <div class="stat-item"><small>Total Terjual</small><b id="terjualVal">0</b></div>
+        <div class="section-title">📊 Sisa Stok Voucher</div>
+        <div class="stats-grid">
+            <div class="stat-card"><small>6 JAM</small><b id="s6">0</b></div>
+            <div class="stat-card"><small>12 JAM</small><b id="s12">0</b></div>
+            <div class="stat-card"><small>24 JAM</small><b id="s24">0</b></div>
+        </div>
+
+        <div class="section-title">💰 Total Terjual (Hari Ini)</div>
+        <div class="stats-grid">
+            <div class="stat-card terjual-box"><small>6 JAM</small><b id="t6">0</b></div>
+            <div class="stat-card terjual-box"><small>12 JAM</small><b id="t12">0</b></div>
+            <div class="stat-card terjual-box"><small>24 JAM</small><b id="t24">0</b></div>
+            <div class="stat-card grand-total">
+                <small>GRAND TOTAL TERJUAL</small>
+                <b id="terjualVal">0</b>
+            </div>
         </div>
         
-        <input type="text" id="voucherCode" placeholder="Kode Voucher">
-        <button id="btnKirim" onclick="submitKeGoogle()">KIRIM LAPORAN</button>
-        <button style="background: var(--success);" onclick="mulaiScan()">📷 SCAN BARCODE</button>
-        
+        <div class="input-group">
+            <label>Pilih Jenis & Kode</label>
+            <select id="voucherType" style="margin-bottom:10px;">
+                <option value="6 Jam">Voucher 6 Jam</option>
+                <option value="12 Jam">Voucher 12 Jam</option>
+                <option value="24 Jam">Voucher 24 Jam</option>
+            </select>
+            <input type="text" id="voucherCode" placeholder="Scan atau ketik kode...">
+        </div>
+
+        <button class="btn-primary" id="btnKirim" onclick="submitKeGoogle()">🚀 Kirim Laporan</button>
+        <button class="btn-success" onclick="mulaiScan()">📷 Scan Barcode</button>
         <div id="reader" class="hidden"></div>
 
-        <div class="history-container">
-            <div class="history-title">
-                <span>Riwayat Voucher (Hari Ini)</span>
-                <span id="countHist">0</span>
-            </div>
-            <div id="historyList" class="history-list">
-                <p id="emptyMsg" style="text-align:center; color:#ccc; font-size:12px; margin-top:10px;">Belum ada penjualan</p>
-            </div>
+        <div class="history-box">
+            <h3 style="font-size:14px; margin-bottom:10px;">Aktivitas Terbaru</h3>
+            <div id="historyList" class="history-list"></div>
         </div>
         
-        <button class="logout-btn" onclick="tombolKeluar()">KELUAR & BERSIHKAN</button>
+        <button class="btn-outline" onclick="bukaModal()">🚪 Keluar</button>
+    </div>
+</div>
+
+<div id="logoutModal" class="modal hidden">
+    <div class="modal-content">
+        <h4 style="margin-bottom:15px;">Pilih Metode Keluar</h4>
+        <button class="btn-primary" style="background:#f1f5f9; color:var(--text-main);" onclick="location.reload()">Simpan Riwayat</button>
+        <button class="btn-primary" style="background:var(--danger);" onclick="bersihkanDanKeluar()">Hapus Semua Data</button>
+        <a onclick="tutupModal()" style="display:block; margin-top:15px; font-size:12px; color:var(--text-sub); cursor:pointer;">Batal</a>
     </div>
 </div>
 
@@ -84,12 +142,12 @@
     const scriptURL = "https://script.google.com/macros/s/AKfycbzeFbvWS9j6dEhSZV6UVD59bHBElWhGTbOfSI4FgQNhjIozV00o1alQrfo9Ln-ZfY2DlQ/exec";
 
     const db = {
-        "Mastin": { p: "1111", s: 50 },
-        "Yesi": { p: "2222", s: 30 }, 
-        "Qila": { p: "3333", s: 100 },
-        "Santy": { p: "4444", s: 25 },
-        "Upi": { p: "5555", s: 40 },  
-        "Tity": { p: "6666", s: 60 }  
+        "Mastin": { p: "1111", s6: 101, s12: 44, s24: 42 },
+        "Yesi":   { p: "2222", s6: 84, s12: 127, s24: 101 },
+        "Qila":   { p: "3333", s6: 100, s12: 151, s24: 100 },
+        "Santy":  { p: "4444", s6: 100, s12: 40, s24: 200 },
+        "Upi":    { p: "5555", s6: 100, s12: 156, s24: 27 },
+        "Tity":   { p: "6666", s6: 100, s12: 0, s24: 120 }
     };
 
     let userSekarang = "";
@@ -102,111 +160,96 @@
 
         if (namaKey && db[namaKey].p === p) {
             userSekarang = namaKey;
-            
-            // Muat data dari penyimpanan HP
             loadDataLocal();
-            
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
-            document.getElementById('subStatus').innerText = "Halo, " + namaKey;
-            
+            document.getElementById('subStatus').innerText = "Reseller: " + namaKey;
             updateDisplay();
         } else {
-            document.getElementById('err').innerText = "Nama atau Password Salah!";
+            document.getElementById('err').innerText = "Nama atau Password salah!";
         }
     }
 
     function updateDisplay() {
-        // Stok dikurangi jumlah yang sudah terjual di riwayat
-        const terjual = riwayatVoucher.length;
-        document.getElementById('stokVal').innerText = db[userSekarang].s - terjual;
-        document.getElementById('terjualVal').innerText = terjual;
-        document.getElementById('countHist').innerText = terjual;
+        let t6 = 0, t12 = 0, t24 = 0;
+        riwayatVoucher.forEach(v => {
+            if(v.tipe === "6 Jam") t6++;
+            else if(v.tipe === "12 Jam") t12++;
+            else if(v.tipe === "24 Jam") t24++;
+        });
+
+        // Update Stok
+        document.getElementById('s6').innerText = db[userSekarang].s6 - t6;
+        document.getElementById('s12').innerText = db[userSekarang].s12 - t12;
+        document.getElementById('s24').innerText = db[userSekarang].s24 - t24;
+        
+        // Update Terjual Per Kategori
+        document.getElementById('t6').innerText = t6;
+        document.getElementById('t12').innerText = t12;
+        document.getElementById('t24').innerText = t24;
+        
+        // Update Grand Total
+        document.getElementById('terjualVal').innerText = t6 + t12 + t24;
         
         const list = document.getElementById('historyList');
-        const emptyMsg = document.getElementById('emptyMsg');
-        
-        if (terjual > 0) {
-            if(emptyMsg) emptyMsg.remove();
-            list.innerHTML = "";
-            riwayatVoucher.slice().reverse().forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `<b>${item.kode}</b> <span>${item.jam}</span>`;
-                list.appendChild(div);
-            });
-        }
+        list.innerHTML = riwayatVoucher.length ? "" : '<p style="text-align:center; color:#94a3b8; font-size:12px;">Kosong</p>';
+        riwayatVoucher.slice().reverse().forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `<div><b>${item.kode}</b> <span class="type-tag">${item.tipe}</span></div> <span style="color:#94a3b8; font-size:11px;">${item.jam}</span>`;
+            list.appendChild(div);
+        });
     }
 
     function loadDataLocal() {
-        const saved = localStorage.getItem('bainet_' + userSekarang);
-        if (saved) {
-            riwayatVoucher = JSON.parse(saved);
-        } else {
-            riwayatVoucher = [];
-        }
+        const saved = localStorage.getItem('bainet_v3_' + userSekarang);
+        if (saved) riwayatVoucher = JSON.parse(saved);
     }
 
     function saveDataLocal() {
-        localStorage.setItem('bainet_' + userSekarang, JSON.stringify(riwayatVoucher));
+        localStorage.setItem('bainet_v3_' + userSekarang, JSON.stringify(riwayatVoucher));
     }
 
-    function tombolKeluar() {
-        if(confirm("Keluar dan hapus riwayat tampilan? (Data di Google Sheets tetap aman)")) {
-            localStorage.removeItem('bainet_' + userSekarang);
-            location.reload();
-        }
-    }
+    function bukaModal() { document.getElementById('logoutModal').classList.remove('hidden'); }
+    function tutupModal() { document.getElementById('logoutModal').classList.add('hidden'); }
+    function bersihkanDanKeluar() { localStorage.removeItem('bainet_v3_' + userSekarang); location.reload(); }
 
     function submitKeGoogle() {
         const kode = document.getElementById('voucherCode').value.trim();
+        const tipe = document.getElementById('voucherType').value;
         const btn = document.getElementById('btnKirim');
-        if(!kode) return alert("Isi kode dulu!");
+        if(!kode) return alert("Isi kode!");
 
         btn.disabled = true;
         btn.innerText = "Mengirim...";
 
         const formData = new FormData();
         formData.append("nama", userSekarang);
-        formData.append("kode", kode);
+        formData.append("kode", kode + " (" + tipe + ")");
 
         fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors' })
         .then(() => {
-            const waktu = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            // Simpan ke array riwayat
-            riwayatVoucher.push({ kode: kode, jam: waktu });
-            
-            // Simpan ke memory HP
+            const jam = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            riwayatVoucher.push({ kode: kode, tipe: tipe, jam: jam });
             saveDataLocal();
-            
-            // Update Tampilan
             updateDisplay();
-            
             document.getElementById('voucherCode').value = "";
             btn.disabled = false;
-            btn.innerText = "KIRIM LAPORAN";
+            btn.innerText = "🚀 Kirim Laporan";
         })
-        .catch(e => {
-            alert("Gagal Kirim! Cek koneksi.");
-            btn.disabled = false;
-            btn.innerText = "KIRIM LAPORAN";
-        });
+        .catch(() => { alert("Gagal!"); btn.disabled = false; });
     }
 
     function mulaiScan() {
         const r = document.getElementById('reader');
         r.classList.remove('hidden');
         const scanner = new Html5Qrcode("reader");
-        scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
+        scanner.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, 
             hasil => {
                 document.getElementById('voucherCode').value = hasil;
-                scanner.stop().then(() => {
-                    r.classList.add('hidden');
-                    submitKeGoogle();
-                });
+                scanner.stop().then(() => { r.classList.add('hidden'); submitKeGoogle(); });
             }
-        ).catch(e => alert("Kamera Error."));
+        ).catch(() => alert("Kamera Error"));
     }
 </script>
 </body>
