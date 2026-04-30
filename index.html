@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BaiNet Sales</title>
+    <title>BaiNet Sales System</title>
     
     <!-- Library Eksternal -->
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -57,12 +57,13 @@
             border: 1px solid var(--card-border); 
             position: relative; 
             overflow: hidden;
+            min-height: 500px;
         }
 
         #loadingOverlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); z-index: 2000; border-radius: 24px;
-            display: none; align-items: center; justify-content: center; flex-direction: column;
+            background: var(--glass); z-index: 2000; display: none; 
+            align-items: center; justify-content: center; flex-direction: column;
             color: var(--primary); font-weight: 700;
         }
 
@@ -104,6 +105,7 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--card-border); color: var(--text-sub); }
 
         .table-container { 
@@ -121,18 +123,24 @@
         }
         .modal-content { 
             background: var(--glass); padding: 25px; border-radius: 20px; 
-            width: 90%; max-width: 360px; 
+            width: 90%; max-width: 360px; border: 1px solid var(--card-border);
         }
         
         #chartContainer { margin-top: 10px; background: white; padding: 10px; border-radius: 15px; border: 1px solid var(--card-border); height: 180px; }
         .hidden { display: none !important; }
+        
+        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; color: white; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div id="loadingOverlay">🔄 Sinkronisasi Cloud...</div>
-    <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
+    <div id="loadingOverlay">
+        <div style="font-size: 30px; margin-bottom: 10px;">⏳</div>
+        <span>Sinkronisasi Cloud...</span>
+    </div>
+
+    <button class="theme-toggle" onclick="toggleDarkMode()" id="themeIcon">🌙</button>
     
     <div class="header">
         <h1>BaiNet</h1>
@@ -162,7 +170,8 @@
                 <tbody id="adminTableBody"></tbody>
             </table>
         </div>
-        <button class="btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Admin</button>
+        <button class="btn-danger" onclick="resetSemuaPenjualan()" style="margin-top:20px; background: #991b1b;">⚠️ Reset Semua Penjualan (Lokal)</button>
+        <button class="btn-outline" onclick="location.reload()">Keluar Admin</button>
     </div>
 
     <!-- DASHBOARD RESELLER -->
@@ -213,13 +222,14 @@
     </div>
 </div>
 
-<!-- MODAL ADMIN -->
+<!-- MODAL KELOLA STOK (ADMIN) -->
 <div id="stokModal" class="modal">
     <div class="modal-content">
         <h3 id="stokTitle" style="color:var(--primary); margin-bottom:15px;">Kelola Stok</h3>
-        <input type="number" id="plus6" placeholder="Tambah Stok 6 Jam">
-        <input type="number" id="plus12" placeholder="Tambah Stok 12 Jam">
-        <input type="number" id="plus24" placeholder="Tambah Stok 24 Jam">
+        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px;">Masukkan angka (contoh: 10 untuk tambah, -5 untuk kurang)</p>
+        <input type="number" id="plus6" placeholder="Tambah/Kurang Stok 6 Jam">
+        <input type="number" id="plus12" placeholder="Tambah/Kurang Stok 12 Jam">
+        <input type="number" id="plus24" placeholder="Tambah/Kurang Stok 24 Jam">
         <button class="btn-primary" onclick="simpanStokAdmin()">Simpan Perubahan</button>
         <button class="btn-outline" onclick="tutupModal()">Batal</button>
     </div>
@@ -237,8 +247,8 @@
 </div>
 
 <script>
-    // URL APPSCRIPT ANDA
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyLDAwsalzWvejxpmMK2M7RA111PdA4v0Oi-BBY-hhLkEVuPaeXTdggWg3wgOQQtvwbzw/exec";
+    // --- KONFIGURASI ---
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjnTT0Ic-YXBPwqvfszWIrjUsqVBg_I7o8EyrepIsocuTMcxaxCRsvPrIW45ZB9UmViQ/exec";
 
     let db = {}; 
     let userSekarang = "";
@@ -247,67 +257,70 @@
     let targetUserAdmin = "";
     let salesChartInstance = null;
 
-    // 1. Sinkronisasi Data dari Sheet
+    // 1. Sinkronisasi Data
     async function muatData() {
         showLoading(true);
         try {
             const res = await fetch(SCRIPT_URL);
             db = await res.json();
-            console.log("Database Sync Berhasil");
+            console.log("Database Sync Berhasil", db);
         } catch (e) {
-            console.error("Gagal sinkron:", e);
+            alert("Gagal Sinkronisasi Cloud. Periksa URL AppScript.");
         }
         showLoading(false);
     }
 
-    // 2. Logika Login
+    // 2. Login
     async function prosesLogin() {
-        await muatData();
         const user = document.getElementById('resellerName').value.trim();
         const pin = document.getElementById('passInput').value;
+
+        if(!user || !pin) return alert("Isi ID dan PIN!");
+
+        await muatData();
         const userData = db[user];
 
-        if (userData && userData.p === pin) {
+        if (userData && String(userData.p) === String(pin)) {
             userSekarang = user;
             document.getElementById('loginPage').classList.add('hidden');
             if (userData.isAdmin) {
                 renderAdmin();
             } else {
                 document.getElementById('dashboardPage').classList.remove('hidden');
-                document.getElementById('subStatus').innerText = "Halo! " + user;
+                document.getElementById('subStatus').innerText = "Halo, " + user;
                 riwayat = JSON.parse(localStorage.getItem('riwayat_' + user)) || [];
                 updateUI();
             }
         } else {
-            document.getElementById('err').innerText = "ID atau PIN salah!";
+            document.getElementById('err').innerText = "User ID atau PIN salah!";
         }
     }
 
-    // 3. Update Dashboard & Hitung Terjual
+    // 3. Update Dashboard User
     function updateUI() {
         const t6 = riwayat.filter(v => v.tipe === "6 Jam").length;
         const t12 = riwayat.filter(v => v.tipe === "12 Jam").length;
         const t24 = riwayat.filter(v => v.tipe === "24 Jam").length;
 
-        document.getElementById('s6').innerText = db[userSekarang].s6;
-        document.getElementById('s12').innerText = db[userSekarang].s12;
-        document.getElementById('s24').innerText = db[userSekarang].s24;
+        document.getElementById('s6').innerText = db[userSekarang].s6 || 0;
+        document.getElementById('s12').innerText = db[userSekarang].s12 || 0;
+        document.getElementById('s24').innerText = db[userSekarang].s24 || 0;
         
         document.getElementById('t6').innerText = t6;
         document.getElementById('t12').innerText = t12;
         document.getElementById('t24').innerText = t24;
 
         const tbody = document.getElementById('userHistoryBody');
-        tbody.innerHTML = riwayat.slice(-10).map(h => `
+        tbody.innerHTML = riwayat.slice(-10).reverse().map(h => `
             <tr>
                 <td><b>${h.kode}</b></td>
-                <td>${h.tipe}</td>
+                <td><span class="badge" style="background:var(--primary)">${h.tipe}</span></td>
                 <td>${h.waktu.split(',')[1] || h.waktu}</td>
             </tr>
-        `).reverse().join('');
+        `).join('');
     }
 
-    // 4. Kirim Laporan Penjualan (POST)
+    // 4. Submit Penjualan
     async function submitLaporan() {
         const kode = document.getElementById('voucherCode').value.trim();
         const tipe = document.getElementById('voucherType').value;
@@ -315,12 +328,15 @@
         if(!kode) return alert("Masukkan kode voucher!");
         if(riwayat.some(r => r.kode === kode)) return alert("Kode sudah pernah diinput!");
 
-        if(tipe === "6 Jam") db[userSekarang].s6--;
-        else if(tipe === "12 Jam") db[userSekarang].s12--;
-        else if(tipe === "24 Jam") db[userSekarang].s24--;
+        // Cek stok lokal sebelum kirim
+        let currentS6 = db[userSekarang].s6;
+        let currentS12 = db[userSekarang].s12;
+        let currentS24 = db[userSekarang].s24;
 
-        riwayat.push({ kode, tipe, waktu: new Date().toLocaleString() });
-        localStorage.setItem('riwayat_' + userSekarang, JSON.stringify(riwayat));
+        if(tipe === "6 Jam" && currentS6 > 0) currentS6--;
+        else if(tipe === "12 Jam" && currentS12 > 0) currentS12--;
+        else if(tipe === "24 Jam" && currentS24 > 0) currentS24--;
+        else return alert("Stok " + tipe + " habis!");
 
         showLoading(true);
         try {
@@ -329,23 +345,35 @@
                 mode: 'no-cors',
                 body: JSON.stringify({
                     user: userSekarang,
-                    s6: db[userSekarang].s6,
-                    s12: db[userSekarang].s12,
-                    s24: db[userSekarang].s24,
+                    s6: currentS6,
+                    s12: currentS12,
+                    s24: currentS24,
                     kode: kode,
                     tipe: tipe
                 })
             });
+
+            // Update lokal jika fetch berhasil (no-cors tidak bisa baca response, kita asumsikan sukses)
+            db[userSekarang].s6 = currentS6;
+            db[userSekarang].s12 = currentS12;
+            db[userSekarang].s24 = currentS24;
+            
+            riwayat.push({ kode, tipe, waktu: new Date().toLocaleString('id-ID') });
+            localStorage.setItem('riwayat_' + userSekarang, JSON.stringify(riwayat));
+
             document.getElementById('voucherCode').value = "";
             updateUI();
-            alert("Laporan Berhasil!");
-        } catch (e) { alert("Gagal mengirim data!"); }
+            alert("Laporan Penjualan Berhasil!");
+        } catch (e) { 
+            alert("Koneksi Error. Gagal mengirim data."); 
+        }
         showLoading(false);
     }
 
-    // 5. Fungsi Admin (Tabel & Chart)
+    // 5. Admin Panel
     function renderAdmin() {
         document.getElementById('adminPage').classList.remove('hidden');
+        document.getElementById('subStatus').innerText = "Administrator Mode";
         const tbody = document.getElementById('adminTableBody');
         tbody.innerHTML = "";
         let labels = [], dataSales = [];
@@ -361,7 +389,13 @@
                     <td><b>${name}</b></td>
                     <td>${db[name].s6}/${db[name].s12}/${db[name].s24}</td>
                     <td>${userRiwayat.length}</td>
-                    <td><button onclick="bukaModal('${name}')" style="padding:6px 12px; width:auto; background:var(--primary); color:white; border-radius:8px;">⚙️</button></td>
+                    <td>
+                        <div style="display:flex; gap:4px;">
+                            <button onclick="bukaModal('${name}')" title="Kelola Stok" style="padding:6px; background:var(--primary); color:white; border-radius:6px; width:auto;">⚙️</button>
+                            <button onclick="resetStokUser('${name}')" title="Reset Stok ke 0" style="padding:6px; background:var(--warning); color:white; border-radius:6px; width:auto;">🔄</button>
+                            <button onclick="resetPenjualanUser('${name}')" title="Hapus Riwayat" style="padding:6px; background:var(--danger); color:white; border-radius:6px; width:auto;">🗑️</button>
+                        </div>
+                    </td>
                 </tr>`;
         });
         updateChart(labels, dataSales);
@@ -374,17 +408,30 @@
             type: 'bar',
             data: {
                 labels: l,
-                datasets: [{ label: 'Voucher Terjual', data: d, backgroundColor: '#6366f1', borderRadius: 5 }]
+                datasets: [{ 
+                    label: 'Voucher Terjual (Lokal)', 
+                    data: d, 
+                    backgroundColor: '#6366f1', 
+                    borderRadius: 8 
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, grid: { display: false } } }
+            }
         });
     }
 
-    // 6. Kelola Stok & Ganti PIN
+    // 6. Admin Actions (Reset & Stok)
     async function simpanStokAdmin() {
-        const n6 = db[targetUserAdmin].s6 + (parseInt(document.getElementById('plus6').value) || 0);
-        const n12 = db[targetUserAdmin].s12 + (parseInt(document.getElementById('plus12').value) || 0);
-        const n24 = db[targetUserAdmin].s24 + (parseInt(document.getElementById('plus24').value) || 0);
+        const p6 = parseInt(document.getElementById('plus6').value) || 0;
+        const p12 = parseInt(document.getElementById('plus12').value) || 0;
+        const p24 = parseInt(document.getElementById('plus24').value) || 0;
+
+        const n6 = db[targetUserAdmin].s6 + p6;
+        const n12 = db[targetUserAdmin].s12 + p12;
+        const n24 = db[targetUserAdmin].s24 + p24;
 
         showLoading(true);
         try {
@@ -393,26 +440,49 @@
                 mode: 'no-cors',
                 body: JSON.stringify({ user: targetUserAdmin, s6: n6, s12: n12, s24: n24 })
             });
+            alert("Stok berhasil diperbarui!");
             setTimeout(async () => {
-                await muatData(); renderAdmin(); tutupModal();
+                await muatData(); 
+                renderAdmin(); 
+                tutupModal();
             }, 1000);
-        } catch (e) { alert("Gagal update stok."); showLoading(false); }
+        } catch (e) { alert("Gagal update."); }
+        showLoading(false);
     }
 
-    function bukaGantiPin() { document.getElementById('pinModal').style.display = "flex"; }
-    function tutupPinModal() { document.getElementById('pinModal').style.display = "none"; }
+    async function resetStokUser(user) {
+        if(!confirm(`Kosongkan stok untuk ${user}?`)) return;
+        showLoading(true);
+        await fetch(SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            body: JSON.stringify({ user: user, s6: 0, s12: 0, s24: 0 })
+        });
+        setTimeout(async () => { await muatData(); renderAdmin(); showLoading(false); }, 1000);
+    }
 
+    function resetPenjualanUser(user) {
+        if(!confirm(`Hapus riwayat penjualan lokal untuk ${user}?`)) return;
+        localStorage.removeItem('riwayat_' + user);
+        renderAdmin();
+    }
+
+    function resetSemuaPenjualan() {
+        if(!confirm("Hapus SEMUA riwayat penjualan lokal?")) return;
+        Object.keys(db).forEach(k => localStorage.removeItem('riwayat_' + k));
+        renderAdmin();
+    }
+
+    // 7. PIN & UI
     async function simpanPinBaru() {
         const oldP = document.getElementById('oldPin').value;
         const newP = document.getElementById('newPin').value;
-        if(oldP !== db[userSekarang].p) return alert("PIN Lama Salah!");
+        if(String(oldP) !== String(db[userSekarang].p)) return alert("PIN Lama Salah!");
         if(newP.length !== 4) return alert("PIN Baru harus 4 digit!");
 
         showLoading(true);
         try {
             await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
+                method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ user: userSekarang, p: newP })
             });
             db[userSekarang].p = newP;
@@ -422,16 +492,25 @@
         showLoading(false);
     }
 
-    // 7. Pendukung UI & Kamera
+    // Helpers
     function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? "flex" : "none"; }
     function bukaModal(user) { targetUserAdmin = user; document.getElementById('stokTitle').innerText = "Update: " + user; document.getElementById('stokModal').style.display = "flex"; }
     function tutupModal() { document.getElementById('stokModal').style.display = "none"; }
-    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
+    function bukaGantiPin() { document.getElementById('pinModal').style.display = "flex"; }
+    function tutupPinModal() { document.getElementById('pinModal').style.display = "none"; }
     
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDark);
+        document.getElementById('themeIcon').innerText = isDark ? "☀️" : "🌙";
+    }
+    
+    // Scanner
     async function mulaiScan() {
         document.getElementById('cameraArea').classList.remove('hidden');
         scannerInstance = new Html5Qrcode("reader");
-        await scannerInstance.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, res => {
+        await scannerInstance.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, res => {
             document.getElementById('voucherCode').value = res;
             stopScan();
         });
@@ -444,7 +523,10 @@
     }
 
     window.onload = () => {
-        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('themeIcon').innerText = "☀️";
+        }
         muatData();
     };
 </script>
