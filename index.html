@@ -383,28 +383,33 @@
     }
 
     async function submitLaporan() {
-        const kode = document.getElementById('voucherCode').value.trim();
-        const tipe = document.getElementById('voucherType').value;
-        if(!kode) return alert("Isi kode voucher!");
-        
-        const cekDuplikat = riwayat.some(v => v.kode === kode);
-        if(cekDuplikat) return alert("⚠️ Kode voucher ini sudah pernah diinput!");
+    const kode = document.getElementById('voucherCode').value.trim();
+    const tipe = document.getElementById('voucherType').value;
+    if(!kode) return alert("Isi kode voucher!");
+    
+    const cekDuplikat = riwayat.some(v => v.kode === kode);
+    if(cekDuplikat) return alert("⚠️ Kode voucher ini sudah pernah diinput!");
 
-        riwayat.push({ 
-            kode, 
-            tipe, 
-            tgl: new Date().toLocaleString(), 
-            timestamp: new Date().getTime() 
-        });
-        localStorage.setItem('riwayat_' + userSekarang, JSON.stringify(riwayat));
-        
-        // Sync ke cloud agar stok berkurang di spreadsheet
-        await simpanKeCloud(userSekarang, db[userSekarang].s6, db[userSekarang].s12, db[userSekarang].s24);
-        
-        document.getElementById('voucherCode').value = "";
-        updateUI();
-        alert("Laporan Terkirim!");
-    }
+    // 1. Kurangi stok di memori aplikasi (lokal) sebelum dikirim
+    if (tipe === "6 Jam") db[userSekarang].s6--;
+    else if (tipe === "12 Jam") db[userSekarang].s12--;
+    else if (tipe === "24 Jam") db[userSekarang].s24--;
+
+    riwayat.push({ 
+        kode, 
+        tipe, 
+        tgl: new Date().toLocaleString(), 
+        timestamp: new Date().getTime() 
+    });
+    localStorage.setItem('riwayat_' + userSekarang, JSON.stringify(riwayat));
+    
+    // 2. Kirim ke cloud dengan tambahan parameter kode dan tipe
+    await simpanKeCloud(userSekarang, db[userSekarang].s6, db[userSekarang].s12, db[userSekarang].s24, kode, tipe);
+    
+    document.getElementById('voucherCode').value = "";
+    updateUI();
+    alert("Laporan Terhasil Terkirim ke Cloud & Stok Berkurang!");
+}
 
     function renderAdmin() {
         document.getElementById('adminPage').classList.remove('hidden');
