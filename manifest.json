@@ -2,19 +2,19 @@
   "short_name": "BaiNet Sales",
   "name": "BaiNet Sales System",
   "icons": [
-  {
-    "src": "https://via.placeholder.com/192/6366f1/ffffff?text=BN",
-    "type": "image/png",
-    "sizes": "192x192"
-  },
-  {
-    "src": "https://via.placeholder.com/512/6366f1/ffffff?text=BaiNet",
-    "type": "image/png",
-    "sizes": "512x512"
-  }
-]
-  "start_url": "./index.html",
-  "background_color": "#6366f1",
+    {
+      "src": "https://via.placeholder.com/192/6366f1/ffffff?text=BN",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://via.placeholder.com/512/6366f1/ffffff?text=BaiNet",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
   "display": "standalone",
-  "theme_color": "#6366f1"
+  "theme_color": "#6366f1",
+  "background_color": "#6366f1"
 }
