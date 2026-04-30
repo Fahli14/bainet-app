@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BaiNet Pro 3.5 - Cloud Edition</title>
+    
     <!-- Library Eksternal -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -50,18 +51,19 @@
             width: 100%; 
             max-width: 480px; 
             border-radius: 24px; 
-            padding: 35px; 
+            padding: 30px; 
             box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
             backdrop-filter: blur(10px); 
             border: 1px solid var(--card-border); 
             position: relative; 
+            overflow: hidden;
         }
 
-        /* Loader Overlay */
         #loadingOverlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8); z-index: 2000; border-radius: 24px;
+            background: rgba(255,255,255,0.9); z-index: 2000; border-radius: 24px;
             display: none; align-items: center; justify-content: center; flex-direction: column;
+            color: var(--primary); font-weight: 700;
         }
 
         .theme-toggle {
@@ -72,9 +74,9 @@
             color: var(--text-main);
         }
 
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
-        .header p { color: var(--text-sub); font-size: 14px; font-weight: 600; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--primary); }
+        .header p { color: var(--text-sub); font-size: 13px; font-weight: 600; }
         
         .section-title { 
             font-size: 11px; font-weight: 800; color: var(--text-sub); 
@@ -86,57 +88,59 @@
             background: var(--input-bg); padding: 12px; border-radius: 16px; 
             border: 1px solid var(--card-border); text-align: center; 
         }
-        .stat-card small { font-size: 9px; font-weight: 800; color: var(--text-sub); display: block; margin-bottom: 4px; }
+        .stat-card small { font-size: 9px; font-weight: 800; color: var(--text-sub); display: block; text-transform: uppercase; }
         .stat-card b { font-size: 18px; color: var(--primary); }
 
         input, select { 
-            width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--card-border); 
-            background: var(--input-bg); font-size: 14px; outline: none; color: var(--text-main); margin-bottom: 15px; 
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--card-border); 
+            background: var(--input-bg); font-size: 14px; outline: none; color: var(--text-main); margin-bottom: 12px; 
         }
 
         button { 
-            width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; 
-            cursor: pointer; border: none; margin-bottom: 10px; display: flex; 
-            align-items: center; justify-content: center; gap: 8px; 
+            width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; 
+            cursor: pointer; border: none; margin-bottom: 8px; display: flex; 
+            align-items: center; justify-content: center; gap: 8px; font-size: 14px;
         }
-        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary { background: var(--primary); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
-        .btn-warning { background: var(--warning); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--card-border); color: var(--text-sub); }
 
-        .table-container { overflow-x: auto; margin-top: 10px; border-radius: 12px; border: 1px solid var(--card-border); max-height: 200px; overflow-y: auto; }
-        .data-table { width: 100%; border-collapse: collapse; font-size: 11px; background: var(--glass); }
+        .table-container { 
+            overflow-x: auto; margin-top: 10px; border-radius: 12px; 
+            border: 1px solid var(--card-border); max-height: 250px; 
+        }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
         .data-table th { background: var(--input-bg); padding: 12px; text-align: left; color: var(--text-sub); position: sticky; top: 0; }
         .data-table td { padding: 12px; border-bottom: 1px solid var(--card-border); color: var(--text-main); }
 
         .modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.7); z-index: 1000; display: none; 
-            align-items: center; justify-content: center; backdrop-filter: blur(8px); 
+            background: rgba(0,0,0,0.6); z-index: 3000; display: none; 
+            align-items: center; justify-content: center; backdrop-filter: blur(4px); 
         }
         .modal-content { 
-            background: var(--glass); padding: 25px; border-radius: 24px; 
-            width: 90%; max-width: 380px; border: 1px solid var(--card-border); 
+            background: var(--glass); padding: 25px; border-radius: 20px; 
+            width: 90%; max-width: 360px; 
         }
         
         .hidden { display: none !important; }
-        #chartContainer { margin-top: 10px; background: white; padding: 10px; border-radius: 15px; border: 1px solid var(--card-border); height: 180px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div id="loadingOverlay">⏳ Sinkronisasi Cloud...</div>
-    <button class="theme-toggle" id="modeBtn" onclick="toggleDarkMode()">🌙</button>
+    <div id="loadingOverlay">🔄 Sinkronisasi Cloud...</div>
+    <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
     
     <div class="header">
         <h1>BaiNet Pro 3.5</h1>
-        <p id="subStatus">Cloud Database Active</p>
+        <p id="subStatus">Cloud Database System</p>
     </div>
 
     <!-- HALAMAN LOGIN -->
     <div id="loginPage">
+        <div class="section-title">Otentikasi User</div>
         <input type="text" id="resellerName" placeholder="User ID Reseller / Admin">
         <input type="password" id="passInput" maxlength="4" inputmode="numeric" placeholder="PIN Keamanan">
         <button class="btn-primary" onclick="prosesLogin()">🚀 Masuk Sistem</button>
@@ -145,39 +149,32 @@
 
     <!-- PANEL ADMIN -->
     <div id="adminPage" class="hidden">
-        <div class="section-title">📊 Grafik Penjualan Global</div>
-        <div id="chartContainer"><canvas id="salesChart"></canvas></div>
-        
-        <div class="section-title">👥 Monitoring Reseller</div>
+        <div class="section-title">📊 Monitoring Global</div>
         <div class="table-container">
             <table class="data-table">
                 <thead>
-                    <tr><th>Reseller</th><th>Stok (6/12/24)</th><th>Laku</th><th>Aksi</th></tr>
+                    <tr><th>User</th><th>Stok (6/12/24)</th><th>Aksi</th></tr>
                 </thead>
                 <tbody id="adminTableBody"></tbody>
             </table>
         </div>
-
-        <div class="section-title">🛠️ Kontrol Database</div>
-        <button class="btn-danger" onclick="resetSemuaPenjualan()">🗑️ Reset Seluruh Penjualan</button>
-        
-        <button class="btn-outline" onclick="location.reload()" style="margin-top: 20px;">🚪 Keluar Admin</button>
+        <button class="btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Admin</button>
     </div>
 
     <!-- DASHBOARD RESELLER -->
     <div id="dashboardPage" class="hidden">
         <div class="section-title">📦 Sisa Stok Voucher</div>
         <div class="stats-grid">
-            <div class="stat-card"><small>6 JAM</small><b id="s6">0</b></div>
-            <div class="stat-card"><small>12 JAM</small><b id="s12">0</b></div>
-            <div class="stat-card"><small>24 JAM</small><b id="s24">0</b></div>
+            <div class="stat-card"><small>6 Jam</small><b id="s6">0</b></div>
+            <div class="stat-card"><small>12 Jam</small><b id="s12">0</b></div>
+            <div class="stat-card"><small>24 Jam</small><b id="s24">0</b></div>
         </div>
 
         <div class="section-title">✅ Total Voucher Terjual</div>
         <div class="stats-grid">
-            <div class="stat-card" style="background:rgba(16,185,129,0.1);"><small>6 JAM</small><b id="t6" style="color:var(--success)">0</b></div>
-            <div class="stat-card" style="background:rgba(16,185,129,0.1);"><small>12 JAM</small><b id="t12" style="color:var(--success)">0</b></div>
-            <div class="stat-card" style="background:rgba(16,185,129,0.1);"><small>24 JAM</small><b id="t24" style="color:var(--success)">0</b></div>
+            <div class="stat-card" style="background:rgba(16,185,129,0.1);"><small>6 Jam</small><b id="t6" style="color:var(--success)">0</b></div>
+            <div class="stat-card" style="background:rgba(16,185,129,0.1);"><small>12 Jam</small><b id="t12" style="color:var(--success)">0</b></div>
+            <div class="stat-card" style="background:rgba(16,185,129,0.1);"><small>24 Jam</small><b id="t24" style="color:var(--success)">0</b></div>
         </div>
 
         <div class="section-title">📝 Input Penjualan</div>
@@ -186,23 +183,18 @@
             <option value="12 Jam">Voucher 12 Jam</option>
             <option value="24 Jam">Voucher 24 Jam</option>
         </select>
-        <input type="text" id="voucherCode" placeholder="Masukkan kode voucher...">
-        <button class="btn-primary" id="btnKirim" onclick="submitLaporan()">🚀 Kirim Laporan</button>
-        <button class="btn-success" onclick="mulaiScan()">📷 Scan Barcode</button>
-        
+        <div style="display:flex; gap:8px;">
+            <input type="text" id="voucherCode" placeholder="Kode Voucher" style="margin-bottom:0;">
+            <button class="btn-success" onclick="mulaiScan()" style="width:50px; margin-bottom:0;">📷</button>
+        </div>
+        <button class="btn-primary" onclick="submitLaporan()" style="margin-top:12px;">🚀 Kirim Laporan</button>
+
         <div id="cameraArea" class="hidden">
-            <div id="reader" style="border-radius:15px; overflow:hidden; margin-bottom:10px; border:2px solid var(--primary);"></div>
-            <button class="btn-danger" onclick="stopScan()">❌ Tutup Kamera</button>
+            <div id="reader" style="border-radius:15px; overflow:hidden; margin:10px 0;"></div>
+            <button class="btn-danger" onclick="stopScan()">Tutup Kamera</button>
         </div>
 
-        <div class="section-title">🔎 Filter Riwayat</div>
-        <select id="filterWaktu" onchange="updateUI()">
-            <option value="semua">Semua Waktu</option>
-            <option value="hari">Hari Ini</option>
-            <option value="minggu">Minggu Ini</option>
-            <option value="bulan">Bulan Ini</option>
-        </select>
-
+        <div class="section-title">Riwayat Lokal (10 Terakhir)</div>
         <div class="table-container">
             <table class="data-table">
                 <thead>
@@ -211,325 +203,203 @@
                 <tbody id="userHistoryBody"></tbody>
             </table>
         </div>
-
-        <hr style="border:0; border-top:1px solid var(--card-border); margin: 20px 0;">
-        <button class="btn-outline" onclick="bukaGantiPin()">🔑 Ganti PIN Saya</button>
-        <button class="btn-outline" onclick="location.reload()">🚪 Keluar</button>
+        <button class="btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar</button>
     </div>
 </div>
 
 <!-- MODAL ADMIN -->
 <div id="stokModal" class="modal">
     <div class="modal-content">
-        <h3 id="stokTitle" style="margin-bottom:20px; font-size:16px; color:var(--primary);">Kelola Reseller</h3>
+        <h3 id="stokTitle" style="color:var(--primary); margin-bottom:15px;">Kelola Stok</h3>
         <input type="number" id="plus6" placeholder="Tambah Stok 6 Jam">
         <input type="number" id="plus12" placeholder="Tambah Stok 12 Jam">
         <input type="number" id="plus24" placeholder="Tambah Stok 24 Jam">
-        
-        <button class="btn-primary" onclick="simpanStokAdmin()">💾 Simpan Stok</button>
-        <button class="btn-warning" onclick="resetStokSatuReseller()" style="font-size: 13px;">🔄 Reset Stok User Ini</button>
-        <button class="btn-outline" onclick="tutupStokModal()">Batal</button>
-    </div>
-</div>
-
-<!-- MODAL GANTI PIN -->
-<div id="pinModal" class="modal">
-    <div class="modal-content">
-        <h3 style="margin-bottom:20px; font-size:16px; color:var(--primary);">Ganti PIN Keamanan</h3>
-        <input type="password" id="oldPin" maxlength="4" placeholder="PIN Lama">
-        <input type="password" id="newPin" maxlength="4" placeholder="PIN Baru (4 Digit)">
-        <button class="btn-primary" onclick="simpanPinBaru()">💾 Update PIN</button>
-        <button class="btn-outline" onclick="tutupPinModal()">Batal</button>
+        <button class="btn-primary" onclick="simpanStokAdmin()">Simpan Perubahan</button>
+        <button class="btn-outline" onclick="tutupModal()">Batal</button>
     </div>
 </div>
 
 <script>
     // URL APPSCRIPT ANDA
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxINApHjCAY-Taq-7M0FCDKq2p9ACvk4b6gF3Z1lOBouGi2fSdhULgekhdz3rUY4w3yHA/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYxiGJDVdAXIsDlPj4Cnn7q8WG-weKIVwEKvuKTHfNXvMz2-C2fwlUPBbvLZt46beitA/exec";
 
-    // Database Utama (Akan dioverwrite oleh Cloud)
-    let db = {};
+    let db = {}; 
     let userSekarang = "";
     let riwayat = [];
     let scannerInstance = null;
-    let salesChartInstance = null;
-    let targetReseller = "";
+    let targetUserAdmin = "";
 
-    // --- 1. CLOUD SINKRONISASI ---
-    async function muatDataCloud() {
-        document.getElementById('loadingOverlay').style.display = "flex";
+    // 1. Sinkronisasi Data dari Sheet (doGet)
+    async function muatData() {
+        showLoading(true);
         try {
             const res = await fetch(SCRIPT_URL);
             db = await res.json();
-            console.log("Data Cloud Berhasil Dimuat");
+            console.log("Database Sync Berhasil");
         } catch (e) {
-            console.error(e);
-            alert("Gagal koneksi ke Cloud! Menggunakan data cadangan.");
+            console.error("Gagal sinkron:", e);
         }
-        document.getElementById('loadingOverlay').style.display = "none";
+        showLoading(false);
     }
 
-    async function simpanKeCloud(targetUser, n6, n12, n24) {
-        document.getElementById('loadingOverlay').style.display = "flex";
-        try {
-            await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({
-                    user: targetUser,
-                    s6: n6,
-                    s12: n12,
-                    s24: n24
-                })
-            });
-            await muatDataCloud(); // Refresh data setelah update
-        } catch (e) {
-            alert("Gagal sinkronisasi ke Cloud!");
-        }
-        document.getElementById('loadingOverlay').style.display = "none";
-    }
-
-    // --- 2. LOGOUT OTOMATIS ---
-    let timerLogout;
-    function resetTimer() {
-        clearTimeout(timerLogout);
-        timerLogout = setTimeout(() => {
-            alert("Sesi berakhir demi keamanan. Silakan login kembali.");
-            location.reload();
-        }, 30 * 60 * 1000); 
-    }
-    window.onload = () => {
-        muatDataCloud();
-        resetTimer();
-    };
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-
-    // --- 3. ANIMASI ANGKA ---
-    function animasiAngka(id, target) {
-        let obj = document.getElementById(id);
-        let start = parseInt(obj.innerText) || 0;
-        let range = target - start;
-        let duration = 600; 
-        let startTime = null;
-
-        function step(timestamp) {
-            if (!startTime) startTime = timestamp;
-            let progress = Math.min((timestamp - startTime) / duration, 1);
-            obj.innerText = Math.floor(progress * range + start);
-            if (progress < 1) window.requestAnimationFrame(step);
-        }
-        window.requestAnimationFrame(step);
-    }
-
-    function toggleDarkMode() {
-        const isDark = document.body.classList.toggle('dark-mode');
-        document.getElementById('modeBtn').innerHTML = isDark ? '☀️' : '🌙';
-        localStorage.setItem('darkMode', isDark);
-    }
-
+    // 2. Logika Login
     async function prosesLogin() {
-        await muatDataCloud(); // Pastikan data paling baru
-        const n = document.getElementById('resellerName').value.trim();
-        const p = document.getElementById('passInput').value;
-        const key = Object.keys(db).find(k => k.toLowerCase() === n.toLowerCase());
-        
-        if (key && db[key].p === p) {
-            userSekarang = key;
+        await muatData();
+        const user = document.getElementById('resellerName').value.trim();
+        const pin = document.getElementById('passInput').value;
+        const userData = db[user];
+
+        if (userData && userData.p === pin) {
+            userSekarang = user;
             document.getElementById('loginPage').classList.add('hidden');
-            if (db[key].isAdmin) renderAdmin();
-            else {
+            if (userData.isAdmin) {
+                renderAdmin();
+            } else {
                 document.getElementById('dashboardPage').classList.remove('hidden');
-                document.getElementById('subStatus').innerText = "Reseller: " + key;
-                riwayat = JSON.parse(localStorage.getItem('riwayat_' + key)) || [];
+                document.getElementById('subStatus').innerText = "Reseller: " + user;
+                riwayat = JSON.parse(localStorage.getItem('riwayat_' + user)) || [];
                 updateUI();
             }
-        } else document.getElementById('err').innerText = "ID atau PIN Salah!";
+        } else {
+            document.getElementById('err').innerText = "ID atau PIN salah!";
+        }
     }
 
+    // 3. Update Dashboard & Hitung Terjual
     function updateUI() {
-        const filter = document.getElementById('filterWaktu').value;
-        const sekarang = new Date();
-        
-        let dataDifilter = riwayat.filter(item => {
-            const tglItem = new Date(item.timestamp || item.tgl);
-            if (filter === "hari") return tglItem.toDateString() === sekarang.toDateString();
-            if (filter === "minggu") {
-                const diff = (sekarang - tglItem) / (1000 * 60 * 60 * 24);
-                return diff <= 7;
-            }
-            if (filter === "bulan") return tglItem.getMonth() === sekarang.getMonth() && tglItem.getFullYear() === sekarang.getFullYear();
-            return true;
-        });
+        // Ambil total terjual dari riwayat lokal
+        const t6 = riwayat.filter(v => v.tipe === "6 Jam").length;
+        const t12 = riwayat.filter(v => v.tipe === "12 Jam").length;
+        const t24 = riwayat.filter(v => v.tipe === "24 Jam").length;
 
-        const t6 = dataDifilter.filter(v => v.tipe === "6 Jam").length;
-        const t12 = dataDifilter.filter(v => v.tipe === "12 Jam").length;
-        const t24 = dataDifilter.filter(v => v.tipe === "24 Jam").length;
+        document.getElementById('s6').innerText = db[userSekarang].s6;
+        document.getElementById('s12').innerText = db[userSekarang].s12;
+        document.getElementById('s24').innerText = db[userSekarang].s24;
         
-        animasiAngka('s6', Math.max(0, db[userSekarang].s6 - t6));
-        animasiAngka('s12', Math.max(0, db[userSekarang].s12 - t12));
-        animasiAngka('s24', Math.max(0, db[userSekarang].s24 - t24));
-        animasiAngka('t6', t6);
-        animasiAngka('t12', t12);
-        animasiAngka('t24', t24);
+        document.getElementById('t6').innerText = t6;
+        document.getElementById('t12').innerText = t12;
+        document.getElementById('t24').innerText = t24;
 
-        const histBody = document.getElementById('userHistoryBody');
-        histBody.innerHTML = dataDifilter.map(item => `
+        const tbody = document.getElementById('userHistoryBody');
+        tbody.innerHTML = riwayat.slice(-10).map(h => `
             <tr>
-                <td><b>${item.kode}</b></td>
-                <td>${item.tipe}</td>
-                <td>${item.tgl.split(',')[1] || item.tgl}</td>
+                <td><b>${h.kode}</b></td>
+                <td>${h.tipe}</td>
+                <td>${h.waktu.split(',')[1] || h.waktu}</td>
             </tr>
         `).reverse().join('');
     }
 
+    // 4. Kirim Laporan Penjualan (doPost)
     async function submitLaporan() {
-    const kode = document.getElementById('voucherCode').value.trim();
-    const tipe = document.getElementById('voucherType').value;
-    if(!kode) return alert("Isi kode voucher!");
-    
-    const cekDuplikat = riwayat.some(v => v.kode === kode);
-    if(cekDuplikat) return alert("⚠️ Kode voucher ini sudah pernah diinput!");
+        const kode = document.getElementById('voucherCode').value.trim();
+        const tipe = document.getElementById('voucherType').value;
 
-    // 1. Kurangi stok di memori aplikasi (lokal) sebelum dikirim
-    if (tipe === "6 Jam") db[userSekarang].s6--;
-    else if (tipe === "12 Jam") db[userSekarang].s12--;
-    else if (tipe === "24 Jam") db[userSekarang].s24--;
+        if(!kode) return alert("Masukkan kode voucher!");
+        if(riwayat.some(r => r.kode === kode)) return alert("Kode sudah pernah diinput!");
 
-    riwayat.push({ 
-        kode, 
-        tipe, 
-        tgl: new Date().toLocaleString(), 
-        timestamp: new Date().getTime() 
-    });
-    localStorage.setItem('riwayat_' + userSekarang, JSON.stringify(riwayat));
-    
-    // 2. Kirim ke cloud dengan tambahan parameter kode dan tipe
-    await simpanKeCloud(userSekarang, db[userSekarang].s6, db[userSekarang].s12, db[userSekarang].s24, kode, tipe);
-    
-    document.getElementById('voucherCode').value = "";
-    updateUI();
-    alert("Laporan Terhasil Terkirim ke Cloud & Stok Berkurang!");
-}
+        // Kurangi stok di memori
+        if(tipe === "6 Jam") db[userSekarang].s6--;
+        else if(tipe === "12 Jam") db[userSekarang].s12--;
+        else if(tipe === "24 Jam") db[userSekarang].s24--;
 
+        // Simpan riwayat lokal
+        riwayat.push({ kode, tipe, waktu: new Date().toLocaleString() });
+        localStorage.setItem('riwayat_' + userSekarang, JSON.stringify(riwayat));
+
+        showLoading(true);
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    user: userSekarang,
+                    s6: db[userSekarang].s6,
+                    s12: db[userSekarang].s12,
+                    s24: db[userSekarang].s24,
+                    kode: kode,
+                    tipe: tipe
+                })
+            });
+            
+            document.getElementById('voucherCode').value = "";
+            updateUI();
+            alert("Laporan Berhasil!");
+        } catch (e) {
+            alert("Gagal mengirim data!");
+        }
+        showLoading(false);
+    }
+
+    // 5. Fungsi Admin
     function renderAdmin() {
         document.getElementById('adminPage').classList.remove('hidden');
         const tbody = document.getElementById('adminTableBody');
         tbody.innerHTML = "";
-        let labels = [], dataSales = [];
-
-        Object.keys(db).forEach(res => {
-            if (db[res].isAdmin) return;
-            const rData = JSON.parse(localStorage.getItem('riwayat_' + res)) || [];
-            labels.push(res); dataSales.push(rData.length);
-            
-            let t6 = rData.filter(v => v.tipe === "6 Jam").length;
-            let t12 = rData.filter(v => v.tipe === "12 Jam").length;
-            let t24 = rData.filter(v => v.tipe === "24 Jam").length;
-            
-            tbody.innerHTML += `<tr>
-                <td><b>${res}</b></td>
-                <td>${Math.max(0, db[res].s6-t6)}/${Math.max(0, db[res].s12-t12)}/${Math.max(0, db[res].s24-t24)}</td>
-                <td>${rData.length}</td>
-                <td><button onclick="bukaStokModal('${res}')" style="padding:6px; background:var(--primary); color:white; width:auto; border-radius:8px;">⚙️</button></td>
-            </tr>`;
-        });
-        updateAdminChart(labels, dataSales);
-    }
-
-    function resetStokSatuReseller() {
-        if (confirm(`Hapus sisa stok untuk ${targetReseller}?`)) {
-            simpanKeCloud(targetReseller, 0, 0, 0);
-            renderAdmin();
-            tutupStokModal();
-            alert(`Stok ${targetReseller} berhasil direset.`);
-        }
-    }
-
-    function resetSemuaPenjualan() {
-        if(confirm("PERINGATAN: Hapus seluruh riwayat penjualan SEMUA reseller?")) {
-            if(confirm("Tindakan ini tidak bisa dibatalkan. Anda benar-benar yakin?")) {
-                Object.keys(db).forEach(res => {
-                    if(!db[res].isAdmin) localStorage.removeItem('riwayat_' + res);
-                });
-                renderAdmin();
-                alert("Seluruh database penjualan telah dibersihkan!");
-            }
-        }
-    }
-
-    function updateAdminChart(l, d) {
-        if(salesChartInstance) salesChartInstance.destroy();
-        const ctx = document.getElementById('salesChart').getContext('2d');
-        salesChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: { 
-                labels: l, 
-                datasets: [{ 
-                    label: 'Total Terjual', 
-                    data: d, 
-                    backgroundColor: '#6366f1', 
-                    borderRadius: 8 
-                }] 
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-            }
+        Object.keys(db).forEach(name => {
+            if(db[name].isAdmin) return;
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${name}</b></td>
+                    <td>${db[name].s6}/${db[name].s12}/${db[name].s24}</td>
+                    <td><button onclick="bukaModal('${name}')" style="padding:6px 12px; width:auto; background:var(--primary); color:white; border-radius:8px;">⚙️</button></td>
+                </tr>`;
         });
     }
 
-    function bukaStokModal(n) { 
-        targetReseller = n; 
-        document.getElementById('stokTitle').innerText = "Kelola: " + n; 
-        document.getElementById('stokModal').style.display = "flex"; 
-    }
-    
-    function tutupStokModal() { document.getElementById('stokModal').style.display = "none"; }
-    
     async function simpanStokAdmin() {
-        const n6 = db[targetReseller].s6 + (parseInt(document.getElementById('plus6').value) || 0);
-        const n12 = db[targetReseller].s12 + (parseInt(document.getElementById('plus12').value) || 0);
-        const n24 = db[targetReseller].s24 + (parseInt(document.getElementById('plus24').value) || 0);
-        
-        await simpanKeCloud(targetReseller, n6, n12, n24);
-        
-        renderAdmin(); 
-        tutupStokModal();
-        document.getElementById('plus6').value = "";
-        document.getElementById('plus12').value = "";
-        document.getElementById('plus24').value = "";
+        const n6 = db[targetUserAdmin].s6 + (parseInt(document.getElementById('plus6').value) || 0);
+        const n12 = db[targetUserAdmin].s12 + (parseInt(document.getElementById('plus12').value) || 0);
+        const n24 = db[targetUserAdmin].s24 + (parseInt(document.getElementById('plus24').value) || 0);
+
+        showLoading(true);
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({ user: targetUserAdmin, s6: n6, s12: n12, s24: n24 })
+            });
+            
+            // Auto refresh
+            setTimeout(async () => {
+                await muatData();
+                renderAdmin();
+                tutupModal();
+                showLoading(false);
+            }, 1000);
+        } catch (e) {
+            alert("Gagal update stok.");
+            showLoading(false);
+        }
     }
 
-    function bukaGantiPin() { document.getElementById('pinModal').style.display = "flex"; }
-    function tutupPinModal() { document.getElementById('pinModal').style.display = "none"; }
+    // Pendukung UI
+    function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? "flex" : "none"; }
+    function bukaModal(user) { targetUserAdmin = user; document.getElementById('stokTitle').innerText = "Update: " + user; document.getElementById('stokModal').style.display = "flex"; }
+    function tutupModal() { document.getElementById('stokModal').style.display = "none"; }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
     
-    async function simpanPinBaru() {
-        const oldP = document.getElementById('oldPin').value;
-        const newP = document.getElementById('newPin').value;
-        if(oldP !== db[userSekarang].p) return alert("PIN Lama Salah!");
-        if(newP.length !== 4) return alert("PIN Baru harus 4 digit!");
-        
-        // Simpan PIN baru ke cloud (kita asumsikan script POST Anda mendukung update PIN jika ditambahkan kodenya)
-        db[userSekarang].p = newP;
-        alert("PIN Berhasil Diganti di Sesi Ini!"); 
-        tutupPinModal();
-    }
-
     async function mulaiScan() {
         document.getElementById('cameraArea').classList.remove('hidden');
         scannerInstance = new Html5Qrcode("reader");
         await scannerInstance.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, res => {
             document.getElementById('voucherCode').value = res;
-            stopScan(); submitLaporan();
+            stopScan();
         });
     }
-    function stopScan() { if(scannerInstance) scannerInstance.stop().then(() => document.getElementById('cameraArea').classList.add('hidden')); }
 
-    if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-        document.getElementById('modeBtn').innerHTML = '☀️';
+    function stopScan() {
+        if(scannerInstance) {
+            scannerInstance.stop().then(() => {
+                document.getElementById('cameraArea').classList.add('hidden');
+            });
+        }
     }
+
+    window.onload = () => {
+        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+        muatData();
+    };
 </script>
 </body>
 </html>
