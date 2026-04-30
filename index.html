@@ -7,31 +7,32 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --primary: #1a73e8; --success: #34a853; --bg: #f8f9fa; --text: #3c4043; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 15px; }
         .card { background: white; width: 100%; max-width: 400px; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: fit-content; margin-top: 20px; }
         .header { text-align: center; margin-bottom: 24px; }
         .header h1 { color: var(--primary); font-size: 24px; margin-bottom: 4px; }
-        .header p { color: #70757a; font-size: 14px; }
         
         label { display: block; margin-top: 15px; font-weight: 600; font-size: 14px; color: #5f6368; }
         input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #dadce0; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
         
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
-        button:active { transform: scale(0.98); }
-        button:disabled { background: #bdc1c6; cursor: not-allowed; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:disabled { background: #bdc1c6; }
         
         .hidden { display: none; }
         
         .stats { display: flex; gap: 12px; margin-bottom: 20px; }
-        .stat-item { flex: 1; background: #f1f3f4; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #e8eaed; }
-        .stat-item small { color: #5f6368; font-size: 12px; display: block; margin-bottom: 4px; }
+        .stat-item { flex: 1; background: #f1f3f4; padding: 12px; border-radius: 12px; text-align: center; }
         .stat-item b { color: var(--primary); font-size: 20px; display: block; }
         
-        #reader { width: 100%; margin-top: 15px; border-radius: 12px; overflow: hidden; border: 2px solid #e8eaed; background: #000; }
-        .error-msg { color: #d93025; text-align: center; font-size: 13px; margin-top: 10px; display: block; }
-        .logout-btn { background: #f1f3f4; color: #5f6368; margin-top: 25px; }
+        .history-container { margin-top: 25px; border-top: 2px solid #f1f3f4; padding-top: 15px; }
+        .history-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #5f6368; display: flex; justify-content: space-between; }
+        .history-list { list-style: none; max-height: 250px; overflow-y: auto; }
+        .history-item { background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; font-size: 13px; align-items: center; }
+        .history-item span { color: #888; font-size: 11px; }
+
+        #reader { width: 100%; margin-top: 15px; border-radius: 12px; overflow: hidden; background: #000; }
+        .logout-btn { background: #f1f3f4; color: #5f6368; margin-top: 20px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -39,114 +40,155 @@
 <div class="card">
     <div class="header">
         <h1>Sistem BaiNet</h1>
-        <p id="subStatus">Silakan login untuk melapor penjualan</p>
+        <p id="subStatus">Lapor Penjualan Voucher</p>
     </div>
 
     <!-- HALAMAN LOGIN -->
     <div id="loginPage">
         <label>Nama Reseller:</label>
-        <input type="text" id="resellerName" placeholder="Contoh: Mastin" autocomplete="off">
-        <label>Password (4 Digit):</label>
-        <input type="password" id="passInput" maxlength="4" inputmode="numeric" placeholder="****">
-        <button onclick="prosesLogin()">MASUK KE PANEL</button>
-        <span id="err" class="error-msg"></span>
+        <input type="text" id="resellerName" placeholder="Nama Anda">
+        <label>Password:</label>
+        <input type="password" id="passInput" maxlength="4" inputmode="numeric">
+        <button onclick="prosesLogin()">MASUK</button>
+        <p id="err" style="color:red; text-align:center; font-size:12px; margin-top:10px;"></p>
     </div>
 
     <!-- HALAMAN DASHBOARD -->
     <div id="dashboardPage" class="hidden">
         <div class="stats">
-            <div class="stat-item">
-                <small>Sisa Stok</small>
-                <b id="stokVal">0</b>
+            <div class="stat-item"><small>Sisa Stok</small><b id="stokVal">0</b></div>
+            <div class="stat-item"><small>Total Terjual</small><b id="terjualVal">0</b></div>
+        </div>
+        
+        <input type="text" id="voucherCode" placeholder="Kode Voucher">
+        <button id="btnKirim" onclick="submitKeGoogle()">KIRIM LAPORAN</button>
+        <button style="background: var(--success);" onclick="mulaiScan()">📷 SCAN BARCODE</button>
+        
+        <div id="reader" class="hidden"></div>
+
+        <div class="history-container">
+            <div class="history-title">
+                <span>Riwayat Voucher (Hari Ini)</span>
+                <span id="countHist">0</span>
             </div>
-            <div class="stat-item">
-                <small>Voucher Terjual</small>
-                <b id="terjualVal">0</b>
+            <div id="historyList" class="history-list">
+                <p id="emptyMsg" style="text-align:center; color:#ccc; font-size:12px; margin-top:10px;">Belum ada penjualan</p>
             </div>
         </div>
         
-        <label>Input/Scan Kode Voucher:</label>
-        <input type="text" id="voucherCode" placeholder="Masukkan kode atau klik scan...">
-        
-        <button id="btnKirim" onclick="submitKeGoogle()">KIRIM LAPORAN</button>
-        <button style="background: var(--success);" onclick="mulaiScan()">📷 BUKA KAMERA SCAN</button>
-        
-        <div id="reader" class="hidden"></div>
-        
-        <button class="logout-btn" onclick="location.reload()">KELUAR APLIKASI</button>
+        <button class="logout-btn" onclick="tombolKeluar()">KELUAR & BERSIHKAN</button>
     </div>
 </div>
 
 <script>
-    // URL Google Apps Script terbaru Anda
     const scriptURL = "https://script.google.com/macros/s/AKfycbzeFbvWS9j6dEhSZV6UVD59bHBElWhGTbOfSI4FgQNhjIozV00o1alQrfo9Ln-ZfY2DlQ/exec";
 
-    // Database Reseller Lokal (Saldo dihapus, diganti total terjual: t)
     const db = {
-        "Mastin": { p: "1111", s: 50, t: 0 },
-        "Yesi": { p: "2222", s: 30, t: 0 }, 
-        "Qila": { p: "3333", s: 100, t: 0 },
-        "Santy": { p: "4444", s: 25, t: 0 },
-        "Upi": { p: "5555", s: 40, t: 0 },  
-        "Tity": { p: "6666", s: 60, t: 0 }  
+        "Mastin": { p: "1111", s: 50 },
+        "Yesi": { p: "2222", s: 30 }, 
+        "Qila": { p: "3333", s: 100 },
+        "Santy": { p: "4444", s: 25 },
+        "Upi": { p: "5555", s: 40 },  
+        "Tity": { p: "6666", s: 60 }  
     };
 
     let userSekarang = "";
+    let riwayatVoucher = [];
 
     function prosesLogin() {
         const n = document.getElementById('resellerName').value.trim();
         const p = document.getElementById('passInput').value;
-        
-        // Pencarian nama (tidak sensitif huruf besar/kecil)
         const namaKey = Object.keys(db).find(k => k.toLowerCase() === n.toLowerCase());
 
         if (namaKey && db[namaKey].p === p) {
             userSekarang = namaKey;
+            
+            // Muat data dari penyimpanan HP
+            loadDataLocal();
+            
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
-            document.getElementById('subStatus').innerText = "Reseller: " + namaKey;
-            document.getElementById('stokVal').innerText = db[namaKey].s;
-            document.getElementById('terjualVal').innerText = db[namaKey].t;
+            document.getElementById('subStatus').innerText = "Halo, " + namaKey;
+            
+            updateDisplay();
         } else {
-            document.getElementById('err').innerText = "Nama atau Password salah. Silakan coba lagi.";
+            document.getElementById('err').innerText = "Nama atau Password Salah!";
+        }
+    }
+
+    function updateDisplay() {
+        // Stok dikurangi jumlah yang sudah terjual di riwayat
+        const terjual = riwayatVoucher.length;
+        document.getElementById('stokVal').innerText = db[userSekarang].s - terjual;
+        document.getElementById('terjualVal').innerText = terjual;
+        document.getElementById('countHist').innerText = terjual;
+        
+        const list = document.getElementById('historyList');
+        const emptyMsg = document.getElementById('emptyMsg');
+        
+        if (terjual > 0) {
+            if(emptyMsg) emptyMsg.remove();
+            list.innerHTML = "";
+            riwayatVoucher.slice().reverse().forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `<b>${item.kode}</b> <span>${item.jam}</span>`;
+                list.appendChild(div);
+            });
+        }
+    }
+
+    function loadDataLocal() {
+        const saved = localStorage.getItem('bainet_' + userSekarang);
+        if (saved) {
+            riwayatVoucher = JSON.parse(saved);
+        } else {
+            riwayatVoucher = [];
+        }
+    }
+
+    function saveDataLocal() {
+        localStorage.setItem('bainet_' + userSekarang, JSON.stringify(riwayatVoucher));
+    }
+
+    function tombolKeluar() {
+        if(confirm("Keluar dan hapus riwayat tampilan? (Data di Google Sheets tetap aman)")) {
+            localStorage.removeItem('bainet_' + userSekarang);
+            location.reload();
         }
     }
 
     function submitKeGoogle() {
         const kode = document.getElementById('voucherCode').value.trim();
         const btn = document.getElementById('btnKirim');
-        
-        if(!kode) return alert("Harap isi atau scan kode voucher terlebih dahulu!");
+        if(!kode) return alert("Isi kode dulu!");
 
         btn.disabled = true;
-        btn.innerText = "Sedang Mengirim...";
+        btn.innerText = "Mengirim...";
 
-        // Menyiapkan data untuk dikirim ke doPost Apps Script
         const formData = new FormData();
         formData.append("nama", userSekarang);
         formData.append("kode", kode);
 
-        fetch(scriptURL, {
-            method: 'POST',
-            body: formData,
-            mode: 'no-cors' // Mode aman untuk Google Apps Script di browser mobile
-        })
+        fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors' })
         .then(() => {
-            // Karena no-cors, kita anggap sukses jika request terkirim
-            db[userSekarang].s--; // Stok berkurang lokal
-            db[userSekarang].t++; // Total terjual bertambah lokal
+            const waktu = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            document.getElementById('stokVal').innerText = db[userSekarang].s;
-            document.getElementById('terjualVal').innerText = db[userSekarang].t;
+            // Simpan ke array riwayat
+            riwayatVoucher.push({ kode: kode, jam: waktu });
+            
+            // Simpan ke memory HP
+            saveDataLocal();
+            
+            // Update Tampilan
+            updateDisplay();
+            
             document.getElementById('voucherCode').value = "";
-            
             btn.disabled = false;
             btn.innerText = "KIRIM LAPORAN";
-            alert("Laporan Berhasil! Data sudah tercatat di Google Sheets.");
         })
         .catch(e => {
-            console.error("Error:", e);
-            alert("Gagal mengirim laporan. Periksa koneksi internet Anda.");
+            alert("Gagal Kirim! Cek koneksi.");
             btn.disabled = false;
             btn.innerText = "KIRIM LAPORAN";
         });
@@ -156,24 +198,16 @@
         const r = document.getElementById('reader');
         r.classList.remove('hidden');
         const scanner = new Html5Qrcode("reader");
-        
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-        scanner.start({ facingMode: "environment" }, config, 
+        scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
             hasil => {
                 document.getElementById('voucherCode').value = hasil;
                 scanner.stop().then(() => {
                     r.classList.add('hidden');
-                    // Langsung kirim otomatis setelah scan berhasil
                     submitKeGoogle();
                 });
             }
-        ).catch(err => {
-            alert("Kamera tidak dapat diakses. Pastikan izin kamera aktif dan menggunakan link HTTPS.");
-            r.classList.add('hidden');
-        });
+        ).catch(e => alert("Kamera Error."));
     }
 </script>
-
 </body>
 </html>
