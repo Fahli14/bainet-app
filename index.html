@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem BaiNet - Portal Reseller</title>
+    <!-- Library QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --success: #34a853;
+            --bg: #f8f9fa;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); display: flex; justify-content: center; min-height: 100vh; padding: 15px; }
+        .app-card { background: white; width: 100%; max-width: 400px; border-radius: 20px; shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; height: fit-content; }
+        .header { background: var(--primary); color: white; padding: 25px; text-align: center; }
+        .content { padding: 20px; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
+        button { border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-scan { background: var(--success); color: white; }
+        .stats-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat { background: #e8f0fe; padding: 15px; border-radius: 10px; text-align: center; }
+        .stat-val { font-size: 18px; font-weight: bold; color: var(--primary); }
+        .hidden { display: none; }
+        #reader { width: 100%; border-radius: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="header">
+        <h1>Sistem BaiNet</h1>
+        <p id="userTitle">Login Reseller</p>
+    </div>
+
+    <div class="content">
+        <!-- FORM LOGIN -->
+        <div id="loginSection">
+            <label>Nama Reseller</label>
+            <input type="text" id="resellerName" placeholder="Ketik nama manual...">
+            <label>Password</label>
+            <input type="password" id="passInput" maxlength="4" inputmode="numeric">
+            <div style="font-size: 14px;">
+                <input type="checkbox" id="rememberMe" style="width: auto;"> Ingat Saya
+            </div>
+            <button class="btn-main" onclick="prosesLogin()">MASUK</button>
+            <p id="errorMsg" style="color:red; text-align:center; font-size: 14px;"></p>
+        </div>
+
+        <!-- DASHBOARD RESELLER -->
+        <div id="dashboardSection" class="hidden">
+            <div class="stats-box">
+                <div class="stat">
+                    <small>Sisa Stok</small>
+                    <div class="stat-val" id="dispStok">0</div>
+                </div>
+                <div class="stat">
+                    <small>Saldo</small>
+                    <div class="stat-val" id="dispSaldo">0</div>
+                </div>
+            </div>
+
+            <label>Input/Scan Kode Voucher</label>
+            <input type="text" id="voucherCode" placeholder="Kode akan muncul di sini...">
+            <button class="btn-main" onclick="submitVoucher()">Kirim Penjualan</button>
+            <button class="btn-scan" onclick="startScanner()">📷 Buka Kamera Scan</button>
+            
+            <div id="reader" class="hidden"></div>
+
+            <button style="background:#666; color:white; margin-top:30px;" onclick="logout()">Keluar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // URL Web App dari Google Apps Script Anda
+    const scriptURL = "TEMPEL_URL_GOOGLE_APPS_SCRIPT_DI_SINI";
+
+    // Database Lokal (Sesuai file Sistem BaiNet)
+    const dataReseller = {
+        "Mastin": { pass: "1111", stok: 50, saldo: 150000 },[cite: 1]
+        "Yesi": { pass: "2222", stok: 30, saldo: 75000 },  [cite: 1]
+        "Qila": { pass: "3333", stok: 100, saldo: 500000 },[cite: 1]
+        "Santy": { pass: "4444", stok: 25, saldo: 40000 }, [cite: 1]
+        "Upi": { pass: "5555", stok: 40, saldo: 90000 },   [cite: 1]
+        "Tity": { pass: "6666", stok: 60, saldo: 120000 }  [cite: 1]
+    };
+
+    let userAktif = null;
+
+    // Cek fitur "Ingat Saya" saat loading
+    window.onload = () => {
+        const saved = localStorage.getItem('bainet_session');
+        if (saved && dataReseller[saved]) bukaDashboard(saved);
+    };
+
+    function prosesLogin() {
+        const nama = document.getElementById('resellerName').value.trim();
+        const pass = document.getElementById('passInput').value;
+        const remember = document.getElementById('rememberMe').checked;
+
+        if (dataReseller[nama] && dataReseller[nama].pass === pass) {[cite: 1]
+            if (remember) localStorage.setItem('bainet_session', nama);
+            bukaDashboard(nama);
+        } else {
+            document.getElementById('errorMsg').innerText = "Nama atau Password Salah!";
+        }
+    }
+
+    function bukaDashboard(nama) {
+        userAktif = nama;
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('dashboardSection').classList.remove('hidden');
+        document.getElementById('userTitle').innerText = "Halo, " + nama;
+        document.getElementById('dispStok').innerText = dataReseller[nama].stok;
+        document.getElementById('dispSaldo').innerText = "Rp " + dataReseller[nama].saldo.toLocaleString();
+    }
+
+    function submitVoucher() {
+        const kode = document.getElementById('voucherCode').value;
+        if (!kode) return alert("Scan/Ketik kode dulu!");
+
+        // Kirim ke Google Sheets
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify({ nama: userAktif, kode: kode })
+        })
+        .then(() => {
+            dataReseller[userAktif].stok--;
+            document.getElementById('dispStok').innerText = dataReseller[userAktif].stok;
+            document.getElementById('voucherCode').value = "";
+            alert("Voucher Terdaftar!");
+        })
+        .catch(() => alert("Gagal kirim ke database pusat."));
+    }
+
+    function startScanner() {
+        const reader = document.getElementById('reader');
+        reader.classList.remove('hidden');
+        const scanner = new Html5Qrcode("reader");
+        scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
+            res => {
+                document.getElementById('voucherCode').value = res;
+                scanner.stop();
+                reader.classList.add('hidden');
+                submitVoucher();
+            }
+        );
+    }
+
+    function logout() {
+        localStorage.removeItem('bainet_session');
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
