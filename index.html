@@ -3,157 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem BaiNet - Portal Reseller</title>
-    <!-- Library QR Code Scanner -->
+    <title>Sistem BaiNet</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root {
-            --primary: #1a73e8;
-            --success: #34a853;
-            --bg: #f8f9fa;
-        }
+        :root { --primary: #1a73e8; --success: #34a853; --bg: #f8f9fa; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); display: flex; justify-content: center; min-height: 100vh; padding: 15px; }
-        .app-card { background: white; width: 100%; max-width: 400px; border-radius: 20px; shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; height: fit-content; }
-        .header { background: var(--primary); color: white; padding: 25px; text-align: center; }
-        .content { padding: 20px; }
+        .card { background: white; width: 100%; max-width: 400px; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: fit-content; }
+        .header { text-align: center; margin-bottom: 20px; color: var(--primary); }
         input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
-        button { border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-main { background: var(--primary); color: white; }
-        .btn-scan { background: var(--success); color: white; }
-        .stats-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat { background: #e8f0fe; padding: 15px; border-radius: 10px; text-align: center; }
-        .stat-val { font-size: 18px; font-weight: bold; color: var(--primary); }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:disabled { background: #ccc; }
         .hidden { display: none; }
-        #reader { width: 100%; border-radius: 10px; margin-top: 10px; }
+        .stats { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-item { flex: 1; background: #e8f0fe; padding: 10px; border-radius: 8px; text-align: center; }
+        .stat-item b { color: var(--primary); display: block; font-size: 18px; }
+        #reader { width: 100%; margin-top: 10px; border-radius: 10px; overflow: hidden; }
     </style>
 </head>
 <body>
 
-<div class="app-card">
+<div class="card">
     <div class="header">
         <h1>Sistem BaiNet</h1>
-        <p id="userTitle">Login Reseller</p>
+        <p id="subStatus">Portal Reseller</p>
     </div>
 
-    <div class="content">
-        <!-- FORM LOGIN -->
-        <div id="loginSection">
-            <label>Nama Reseller</label>
-            <input type="text" id="resellerName" placeholder="Ketik nama manual...">
-            <label>Password</label>
-            <input type="password" id="passInput" maxlength="4" inputmode="numeric">
-            <div style="font-size: 14px;">
-                <input type="checkbox" id="rememberMe" style="width: auto;"> Ingat Saya
-            </div>
-            <button class="btn-main" onclick="prosesLogin()">MASUK</button>
-            <p id="errorMsg" style="color:red; text-align:center; font-size: 14px;"></p>
+    <!-- HALAMAN LOGIN -->
+    <div id="loginPage">
+        <label>Nama Reseller:</label>
+        <input type="text" id="resellerName" placeholder="Ketik nama manual...">
+        <label>Password:</label>
+        <input type="password" id="passInput" maxlength="4" inputmode="numeric">
+        <button onclick="prosesLogin()">LOGIN</button>
+        <p id="err" style="color:red; text-align:center; font-size:14px; margin-top:10px;"></p>
+    </div>
+
+    <!-- HALAMAN DASHBOARD -->
+    <div id="dashboardPage" class="hidden">
+        <div class="stats">
+            <div class="stat-item"><small>Sisa Stok</small><b id="stokVal">0</b></div>
+            <div class="stat-item"><small>Saldo</small><b id="saldoVal">0</b></div>
         </div>
-
-        <!-- DASHBOARD RESELLER -->
-        <div id="dashboardSection" class="hidden">
-            <div class="stats-box">
-                <div class="stat">
-                    <small>Sisa Stok</small>
-                    <div class="stat-val" id="dispStok">0</div>
-                </div>
-                <div class="stat">
-                    <small>Saldo</small>
-                    <div class="stat-val" id="dispSaldo">0</div>
-                </div>
-            </div>
-
-            <label>Input/Scan Kode Voucher</label>
-            <input type="text" id="voucherCode" placeholder="Kode akan muncul di sini...">
-            <button class="btn-main" onclick="submitVoucher()">Kirim Penjualan</button>
-            <button class="btn-scan" onclick="startScanner()">📷 Buka Kamera Scan</button>
-            
-            <div id="reader" class="hidden"></div>
-
-            <button style="background:#666; color:white; margin-top:30px;" onclick="logout()">Keluar</button>
-        </div>
+        
+        <label>Input/Scan Kode Voucher:</label>
+        <input type="text" id="voucherCode" placeholder="Kode otomatis terisi...">
+        <button id="btnKirim" onclick="submitKeGoogle()">Kirim Laporan</button>
+        <button style="background: var(--success);" onclick="mulaiScan()">📷 Scan Barcode</button>
+        
+        <div id="reader" class="hidden"></div>
+        
+        <button style="background:#666; margin-top:20px;" onclick="location.reload()">LOGOUT</button>
     </div>
 </div>
 
 <script>
-    // URL Web App dari Google Apps Script Anda
-    const scriptURL = "TEMPEL_URL_GOOGLE_APPS_SCRIPT_DI_SINI";
+    // URL APPSCRIPT ANDA
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxPTQm2R5QQlQ3u473Z1XUxGEr4t0NOFg9vAu-TuCwMvFHL0EvtMGm6ej2h-ydIZOabXg/exec";
 
-    // Database Lokal (Sesuai file Sistem BaiNet)
-    const dataReseller = {
-        "Mastin": { pass: "1111", stok: 50, saldo: 150000 },[cite: 1]
-        "Yesi": { pass: "2222", stok: 30, saldo: 75000 },  [cite: 1]
-        "Qila": { pass: "3333", stok: 100, saldo: 500000 },[cite: 1]
-        "Santy": { pass: "4444", stok: 25, saldo: 40000 }, [cite: 1]
-        "Upi": { pass: "5555", stok: 40, saldo: 90000 },   [cite: 1]
-        "Tity": { pass: "6666", stok: 60, saldo: 120000 }  [cite: 1]
+    // DATABASE RESELLER
+    const db = {
+        "Mastin": { p: "1111", s: 50, sal: 150000 },
+        "Yesi": { p: "2222", s: 30, sal: 75000 },
+        "Qila": { p: "3333", s: 100, sal: 500000 },
+        "Santy": { p: "4444", s: 25, sal: 40000 },
+        "Upi": { p: "5555", s: 40, sal: 90000 },
+        "Tity": { p: "6666", s: 60, sal: 120000 }
     };
 
-    let userAktif = null;
-
-    // Cek fitur "Ingat Saya" saat loading
-    window.onload = () => {
-        const saved = localStorage.getItem('bainet_session');
-        if (saved && dataReseller[saved]) bukaDashboard(saved);
-    };
+    let userSekarang = "";
 
     function prosesLogin() {
-        const nama = document.getElementById('resellerName').value.trim();
-        const pass = document.getElementById('passInput').value;
-        const remember = document.getElementById('rememberMe').checked;
+        const n = document.getElementById('resellerName').value.trim();
+        const p = document.getElementById('passInput').value;
+        
+        // Cari nama tanpa peduli huruf besar/kecil
+        const namaKey = Object.keys(db).find(k => k.toLowerCase() === n.toLowerCase());
 
-        if (dataReseller[nama] && dataReseller[nama].pass === pass) {[cite: 1]
-            if (remember) localStorage.setItem('bainet_session', nama);
-            bukaDashboard(nama);
+        if (namaKey && db[namaKey].p === p) {
+            userSekarang = namaKey;
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('dashboardPage').classList.remove('hidden');
+            document.getElementById('subStatus').innerText = "Halo, " + namaKey;
+            document.getElementById('stokVal').innerText = db[namaKey].s;
+            document.getElementById('saldoVal').innerText = "Rp" + db[namaKey].sal.toLocaleString();
         } else {
-            document.getElementById('errorMsg').innerText = "Nama atau Password Salah!";
+            document.getElementById('err').innerText = "Nama atau Password Salah!";
         }
     }
 
-    function bukaDashboard(nama) {
-        userAktif = nama;
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('dashboardSection').classList.remove('hidden');
-        document.getElementById('userTitle').innerText = "Halo, " + nama;
-        document.getElementById('dispStok').innerText = dataReseller[nama].stok;
-        document.getElementById('dispSaldo').innerText = "Rp " + dataReseller[nama].saldo.toLocaleString();
-    }
-
-    function submitVoucher() {
+    function submitKeGoogle() {
         const kode = document.getElementById('voucherCode').value;
-        if (!kode) return alert("Scan/Ketik kode dulu!");
+        const btn = document.getElementById('btnKirim');
+        if(!kode) return alert("Scan voucher dulu!");
 
-        // Kirim ke Google Sheets
+        btn.disabled = true;
+        btn.innerText = "Mengirim...";
+
         fetch(scriptURL, {
             method: 'POST',
-            body: JSON.stringify({ nama: userAktif, kode: kode })
+            mode: 'no-cors', // Penting untuk Apps Script
+            cache: 'no-cache',
+            body: JSON.stringify({ nama: userSekarang, kode: kode })
         })
         .then(() => {
-            dataReseller[userAktif].stok--;
-            document.getElementById('dispStok').innerText = dataReseller[userAktif].stok;
+            db[userSekarang].s--;
+            document.getElementById('stokVal').innerText = db[userSekarang].s;
             document.getElementById('voucherCode').value = "";
-            alert("Voucher Terdaftar!");
+            btn.disabled = false;
+            btn.innerText = "Kirim Laporan";
+            alert("Berhasil! Data " + kode + " sudah masuk ke Google Sheets.");
         })
-        .catch(() => alert("Gagal kirim ke database pusat."));
+        .catch(e => {
+            alert("Error kirim data!");
+            btn.disabled = false;
+            btn.innerText = "Kirim Laporan";
+        });
     }
 
-    function startScanner() {
-        const reader = document.getElementById('reader');
-        reader.classList.remove('hidden');
+    function mulaiScan() {
+        const r = document.getElementById('reader');
+        r.classList.remove('hidden');
         const scanner = new Html5Qrcode("reader");
         scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
-            res => {
-                document.getElementById('voucherCode').value = res;
+            hasil => {
+                document.getElementById('voucherCode').value = hasil;
                 scanner.stop();
-                reader.classList.add('hidden');
-                submitVoucher();
+                r.classList.add('hidden');
+                submitKeGoogle();
             }
-        );
-    }
-
-    function logout() {
-        localStorage.removeItem('bainet_session');
-        location.reload();
+        ).catch(e => alert("Kamera tidak diizinkan atau tidak ditemukan."));
     }
 </script>
 
