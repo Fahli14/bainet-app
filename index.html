@@ -332,6 +332,7 @@
         const tipe = document.getElementById('voucherType').value;
 
         if(!kode) return alert("Masukkan kode voucher!");
+        if(!confirm(`Kirim laporan untuk kode: ${kode} (${tipe})?`)) return;
         if(riwayat.some(r => r.kode === kode)) return alert("Kode sudah pernah diinput!");
 
         // Cek stok lokal sebelum kirim
