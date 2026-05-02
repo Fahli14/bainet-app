@@ -277,8 +277,8 @@
 
     // 2. Login
     async function prosesLogin() {
-        const user = document.getElementById('resellerName').value.trim();
-        const pin = document.getElementById('passInput').value;
+        const user = document.getElementById('resellerName').value.trim().replace(/[^a-zA-Z0-9]/g, "");
+        const pin = document.getElementById('passInput').value.replace(/[^0-9]/g, "");
 
         if(!user || !pin) return alert("Isi ID dan PIN!");
 
