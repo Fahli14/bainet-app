@@ -515,19 +515,39 @@
     
     // Scanner
     async function mulaiScan() {
-        document.getElementById('cameraArea').classList.remove('hidden');
-        scannerInstance = new Html5Qrcode("reader");
-        await scannerInstance.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, res => {
-            document.getElementById('voucherCode').value = res;
-            stopScan();
-        });
-    }
+    document.getElementById('cameraArea').classList.remove('hidden');
+    scannerInstance = new Html5Qrcode("reader");
+    await scannerInstance.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, res => {
+        
+        let hasilKode = res; // Default jika bukan URL
 
-    function stopScan() {
-        if(scannerInstance) {
-            scannerInstance.stop().then(() => { document.getElementById('cameraArea').classList.add('hidden'); });
+        try {
+            // Cek apakah hasil scan adalah URL (mengandung http)
+            if (res.includes("http")) {
+                const urlObj = new URL(res);
+                // Mengambil parameter 'username' dari URL
+                const username = urlObj.searchParams.get("username");
+                
+                if (username) {
+                    hasilKode = username;
+                } else {
+                    // Jika tidak ada parameter username, ambil bagian terakhir setelah '/'
+                    hasilKode = res.split('/').pop().split('?')[0];
+                }
+            }
+        } catch (e) {
+            console.error("Bukan format URL, menggunakan teks asli.");
         }
-    }
+
+        // Masukkan hasil yang sudah bersih ke kolom input
+        document.getElementById('voucherCode').value = hasilKode;
+        
+        // Berikan feedback suara atau getar (opsional)
+        if (navigator.vibrate) navigator.vibrate(100);
+        
+        stopScan();
+    });
+}
 
     window.onload = () => {
         if (localStorage.getItem('darkMode') === 'true') {
