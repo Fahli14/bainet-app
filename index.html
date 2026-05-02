@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://script.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://script.google.com;">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#6366f1">
     <!-- Untuk iOS agar tampak seperti app -->
@@ -278,8 +277,8 @@
 
     // 2. Login
     async function prosesLogin() {
-        const user = document.getElementById('resellerName').value.trim().replace(/[^a-zA-Z0-9]/g, "");
-        const pin = document.getElementById('passInput').value.replace(/[^0-9]/g, "");
+        const user = document.getElementById('resellerName').value.trim();
+        const pin = document.getElementById('passInput').value;
 
         if(!user || !pin) return alert("Isi ID dan PIN!");
 
@@ -332,7 +331,6 @@
         const tipe = document.getElementById('voucherType').value;
 
         if(!kode) return alert("Masukkan kode voucher!");
-        if(!confirm(`Kirim laporan untuk kode: ${kode} (${tipe})?`)) return;
         if(riwayat.some(r => r.kode === kode)) return alert("Kode sudah pernah diinput!");
 
         // Cek stok lokal sebelum kirim
@@ -515,39 +513,19 @@
     
     // Scanner
     async function mulaiScan() {
-    document.getElementById('cameraArea').classList.remove('hidden');
-    scannerInstance = new Html5Qrcode("reader");
-    await scannerInstance.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, res => {
-        
-        let hasilKode = res; // Default jika bukan URL
+        document.getElementById('cameraArea').classList.remove('hidden');
+        scannerInstance = new Html5Qrcode("reader");
+        await scannerInstance.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, res => {
+            document.getElementById('voucherCode').value = res;
+            stopScan();
+        });
+    }
 
-        try {
-            // Cek apakah hasil scan adalah URL (mengandung http)
-            if (res.includes("http")) {
-                const urlObj = new URL(res);
-                // Mengambil parameter 'username' dari URL
-                const username = urlObj.searchParams.get("username");
-                
-                if (username) {
-                    hasilKode = username;
-                } else {
-                    // Jika tidak ada parameter username, ambil bagian terakhir setelah '/'
-                    hasilKode = res.split('/').pop().split('?')[0];
-                }
-            }
-        } catch (e) {
-            console.error("Bukan format URL, menggunakan teks asli.");
+    function stopScan() {
+        if(scannerInstance) {
+            scannerInstance.stop().then(() => { document.getElementById('cameraArea').classList.add('hidden'); });
         }
-
-        // Masukkan hasil yang sudah bersih ke kolom input
-        document.getElementById('voucherCode').value = hasilKode;
-        
-        // Berikan feedback suara atau getar (opsional)
-        if (navigator.vibrate) navigator.vibrate(100);
-        
-        stopScan();
-    });
-}
+    }
 
     window.onload = () => {
         if (localStorage.getItem('darkMode') === 'true') {
